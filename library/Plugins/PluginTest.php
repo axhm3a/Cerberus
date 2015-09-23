@@ -21,11 +21,15 @@ namespace Cerberus\Plugins;
 
 use Cerberus\Plugin;
 
-class PluginJoin extends Plugin
+class PluginTest extends Plugin
 {
     protected function init()
     {
         $this->irc->addEvent('onPrivmsg', $this);
+        $this->irc->addEvent('onNotice', $this);
+        $this->irc->addEvent('onJoin', $this);
+        $this->irc->addEvent('onPart', $this);
+        $this->irc->addEvent('onQuit', $this);
     }
 
     /**
@@ -36,27 +40,56 @@ class PluginJoin extends Plugin
     {
         $returnValue = parent::onLoad($data);
         if ($data !== null) {
-            $this->irc->getAction()->notice($data['nick'], 'New Command: !join [#channel]');
         }
         return $returnValue;
     }
 
     /**
      * @param array $data
-     * @return bool
+     */
+    protected function doEcho($data)
+    {
+        ksort($data);
+        echo serialize($data);
+    }
+
+    /**
+     * @param array $data
      */
     public function onPrivmsg($data)
     {
-        if ($this->irc->isAdmin($data['nick'], $data['host']) === false) {
-            return false;
-        }
-        $splitText = explode(' ', $data['text']);
-        $command = array_shift($splitText);
-        if ($command == '!join') {
-            while ($channel = array_shift($splitText)) {
-                $this->irc->getAction()->join($channel);
-            }
-            return true;
-        }
+        $this->doEcho($data);
+    }
+
+    /**
+     * @param array $data
+     */
+    public function onNotice($data)
+    {
+        $this->doEcho($data);
+    }
+
+    /**
+     * @param array $data
+     */
+    public function onJoin($data)
+    {
+        $this->doEcho($data);
+    }
+
+    /**
+     * @param array $data
+     */
+    public function onPart($data)
+    {
+        $this->doEcho($data);
+    }
+
+    /**
+     * @param array $data
+     */
+    public function onQuit($data)
+    {
+        $this->doEcho($data);
     }
 }

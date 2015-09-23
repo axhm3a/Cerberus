@@ -20,12 +20,13 @@
 namespace Cerberus\Plugins;
 
 use Cerberus\Plugin;
+use Exception;
 
-class PluginJoin extends Plugin
+class PluginInit extends Plugin
 {
     protected function init()
     {
-        $this->irc->addEvent('onPrivmsg', $this);
+        $this->irc->addEvent('onConnect', $this);
     }
 
     /**
@@ -36,27 +37,25 @@ class PluginJoin extends Plugin
     {
         $returnValue = parent::onLoad($data);
         if ($data !== null) {
-            $this->irc->getAction()->notice($data['nick'], 'New Command: !join [#channel]');
         }
         return $returnValue;
     }
 
     /**
      * @param array $data
-     * @return bool
      */
-    public function onPrivmsg($data)
+    public function onConnect($data)
     {
-        if ($this->irc->isAdmin($data['nick'], $data['host']) === false) {
-            return false;
-        }
-        $splitText = explode(' ', $data['text']);
-        $command = array_shift($splitText);
-        if ($command == '!join') {
-            while ($channel = array_shift($splitText)) {
-                $this->irc->getAction()->join($channel);
+        if (isset($data['frontend']['url']) === true) {
+            $url = trim($data['frontend']['url'], " \t\n\r\0\x0B/") . '/sethost.php';
+            if (isset($data['frontend']['password']) === true) {
+                $url .= '?pw=' . md5($data['frontend']['password']);
             }
-            return true;
+            try {
+                file_get_contents($url);
+            } catch (Exception $e) {
+                $this->irc->error($e->getMessage());
+            }
         }
     }
 }

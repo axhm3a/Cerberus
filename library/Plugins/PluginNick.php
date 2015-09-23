@@ -21,7 +21,7 @@ namespace Cerberus\Plugins;
 
 use Cerberus\Plugin;
 
-class PluginJoin extends Plugin
+class PluginNick extends Plugin
 {
     protected function init()
     {
@@ -36,14 +36,14 @@ class PluginJoin extends Plugin
     {
         $returnValue = parent::onLoad($data);
         if ($data !== null) {
-            $this->irc->getAction()->notice($data['nick'], 'New Command: !join [#channel]');
+            $this->irc->getAction()->notice($data['nick'], 'New Command: !nick [name]');
         }
         return $returnValue;
     }
 
     /**
      * @param array $data
-     * @return bool
+     * @return bool|void
      */
     public function onPrivmsg($data)
     {
@@ -52,11 +52,9 @@ class PluginJoin extends Plugin
         }
         $splitText = explode(' ', $data['text']);
         $command = array_shift($splitText);
-        if ($command == '!join') {
-            while ($channel = array_shift($splitText)) {
-                $this->irc->getAction()->join($channel);
-            }
-            return true;
+        if ($command == '!nick') {
+            $nick = trim(array_shift($splitText));
+            return $this->irc->getAction()->nick($nick);
         }
     }
 }
